@@ -1,0 +1,206 @@
+***************************************** 
+*** NAND3
+***************************************** 
+.SUBCKT NAND3 A B C Vdd Vss Y
+*.PININFO A:I B:I C:I Vdd:I Vss:I Y:O
+MM5 Y C Vdd Vdd p_18 W=2.8u L=180.00n m=1
+MM4 Y B Vdd Vdd p_18 W=2.8u L=180.00n m=1
+MM3 Y A Vdd Vdd p_18 W=2.8u L=180.00n m=1
+MM2 net32 C Vss Vss n_18 W=1.8u L=180.00n m=1
+MM1 net36 B net32 Vss n_18 W=1.8u L=180.00n m=1
+MM0 Y A net36 Vss n_18 W=1.8u L=180.00n m=1
+.ENDS
+
+***************************************** 
+*** NAND2
+***************************************** 
+.SUBCKT NAND2 A B Vdd Vss Y
+*.PININFO A:I B:I Vdd:I Vss:I Y:O
+MM2 Y B Vdd Vdd p_18 W=2.8u L=180.00n m=1
+MM1 Y A Vdd Vdd p_18 W=2.8u L=180.00n m=1
+MM4 net9 B Vss Vss n_18 W=1.2u L=180.00n m=1
+MM0 Y A net9 Vss n_18 W=1.2u L=180.00n m=1
+.ENDS
+
+***************************************** 
+*** INV
+***************************************** 
+.SUBCKT INV In Out Vdd Vss
+*.PININFO In:I Vdd:I Vss:I Out:O
+MM1 Out In Vss Vss n_18 W=600.0n L=180.00n m=1
+MM0 Out In Vdd Vdd p_18 W=2.8u L=180n m=1
+.ENDS
+
+***************************************** 
+*** XNOR
+***************************************** 
+.SUBCKT XNOR A B Out Vdd Vss
+*.PININFO In:I Vdd:I Vss:I Out:O
+XNAND1 A B AB_out Vdd Vss NAND2
+
+XNAND2 A AB_out Vx Vdd Vss NAND2
+
+XNAND3 B AB_out Vy Vdd Vss NAND2
+
+XNAND4 Vx Vy Vz Vdd Vss NAND2
+
+XINV1 Vz out Vdd Vss INV
+
+.ENDS
+
+
+***************************************** 
+*** latch
+***************************************** 
+.SUBCKT latch Din Dout RST_N Vdd Vss latch latch_bar
+*.PININFO Din:I RST_N:I Vdd:I Vss:I latch:I latch_bar:I 
+*.PININFO Dout:O
+XI1 RST_N net11 Vss Vdd net33 / NAND2
+XI2 net11 Dout Vdd Vss / INV
+XI0 net37 net11 Vdd Vss / INV
+MM2 net37 latch net33 Vdd p_18 W=2.5u L=180.00n m=1
+MM1 Din latch_bar net37 Vdd p_18 W=2.5u L=180.00n m=1
+MM3 net37 latch_bar net33 Vss n_18 W=2.5u L=180.00n m=1
+MM0 Din latch net37 Vss n_18 W=2.5u L=180.00n m=1
+.ENDS
+
+***************************************** 
+*** DFF
+***************************************** 
+.SUBCKT DFF C D Q Qbar RST_N Vdd Vss
+*.PININFO C:I D:I RST_N:I Vdd:I Vss:I Q:O Qbar:O
+XI15 net050 C RST_N Vdd Vss net054 / NAND3
+XI16 net054 C net052 Vdd Vss net048 / NAND3
+XI17 net048 D RST_N Vdd Vss net052 / NAND3
+XI20 Q net048 RST_N Vdd Vss Qbar / NAND3
+XI18 net054 Qbar Vdd Vss Q / NAND2
+XI13 net052 net054 Vdd Vss net050 / NAND2
+.ENDS
+
+***************************************** 
+*** 6 bits counter
+***************************************** 
+.SUBCKT counter6b B0 B1 B2 B3 B4 B5 CNT_CLK RST_N Vdd Vss
+*.PININFO CNT_CLK:I RST_N:I Vdd:I Vss:I B0:O B1:O B2:O B3:O B4:O B5:O
+XI14 Qbar4 net1 B5 net1 RST_N Vdd Vss / DFF
+XI9 net43 Qbar4 B4 Qbar4 RST_N Vdd Vss / DFF
+XI8 net50 net43 B3 net43 RST_N Vdd Vss / DFF
+XI7 net57 net50 B2 net50 RST_N Vdd Vss / DFF
+XI6 net64 net57 B1 net57 RST_N Vdd Vss / DFF
+XI0 CNT_CLK net64 B0 net64 RST_N Vdd Vss / DFF
+.ENDS
+
+***************************************** 
+*** pre-amplifier
+***************************************** 
+.SUBCKT pre_amp vdd vss CK vi1 vi2 vao1 vao2
+M1 vao2 vi1 vx vss n_18 w=1.2u l=0.5u m=1
+M2 vao1 vi2 vx vss n_18 w=1.2u l=0.5u m=1
+
+M3 vx CK vss vss n_18 w=1.6u l=0.5u m=1
+
+M4 vao2 CK vdd vdd p_18 w=0.5u l=0.5u m=1
+M5 vao1 CK vdd vdd p_18 w=0.5u l=0.5u m=1
+
+.ENDS
+***************************************** 
+*** regenerative_latch
+***************************************** 
+.SUBCKT regen_latch vdd vss CK CK_bar vao1 vao2 D D_bar
+M6 m6d vlop vdd vdd p_18 w=2.2u l=0.5u m=1
+M7 m7d vlon vdd vdd p_18 w=2.2u l=0.5u m=1
+
+M8 vlon vao1 m6d vdd p_18 w=2.2u l=0.5u m=1
+M9 vlop vao2 m7d vdd p_18 w=2.2u l=0.5u m=1
+
+M10 vlon vlop vss vss n_18 w=0.5u l=0.5u m=1
+M11 vlop vlon vss vss n_18 w=0.5u l=0.5u m=1
+
+M12 vlon CK_bar vss vss n_18 w=0.5u l=0.5u m=1
+M13 vlop CK_bar vss vss n_18 w=0.5u l=0.5u m=1
+
+X_inv1 vdd vss vlon D INV
+X_inv2 vdd vss vlop D_bar INV
+
+.ENDS
+
+***************************************** 
+*** comparator with pre_amp + regenerative_latch
+***************************************** 
+.SUBCKT cmp_dyna_two_stage vdd vss vi1 vi2 CK CK_bar D D_bar 
+X_pre_amp vdd vss CK vi1 vi2 vao1 vao2 pre_amp
+
+X_regen_latch vdd vss CK CK_bar vao1 vao2 D D_bar regen_latch
+
+.ENDS
+
+***************************************** 
+*** bootstrapped_switch
+***************************************** 
+.SUBCKT bootstrapped_switch Clks Clksb SH_out Vdd Vss input
+*.PININFO Clks:I Clksb:I Vdd:I Vss:I input:I SH_out:O
+CC0 net33 net20 500f
+
+MM9 input net13 SH_out Vss n_18 W=7u L=180n m=1
+MM8 net20 net13 input Vss n_18 W=3u L=180.00n m=1
+MM7 net9 Clksb Vss Vss n_18 W=5.5u L=180.00n m=1
+MM6 net13 Vdd net9 Vss n_18 W=2u L=180.00n m=1
+MM5 net25 net13 net20 Vss n_18 W=1.7u L=180.00n m=1
+MM2 net20 Clksb Vss Vss n_18 W=1.7u L=180.00n m=1
+MM1 net25 Clks net20 Vss n_18 W=1.7u L=180.00n m=1
+MM4 net13 net25 net33 net33 p_18 W=4.2u L=180.00n m=1
+MM3 net33 net13 Vdd net33 p_18 W=4.2u L=180.00n m=1
+MM0 net25 Clks Vdd Vdd p_18 W=4.2u L=180.00n m=1
+.ENDS
+
+
+************************************************************************************************
+*** cmp ---------You must write the comparator you designed here.-------------------------------
+************************************************************************************************ 
+
+*comparator  -----------------------------------------
+.SUBCKT cmp Vdd Vss Vb Vip Vin Vout
+M1  n1   vip nb vss n_18 w= 3u l=.3u m=1
+M2  n2   vin nb vss n_18 w= 3u l=.3u m=1
+M3  n2   n1 vdd vdd p_18 w= 9u l=.3u m=1 $$
+M4  n1   n2 vdd vdd p_18 w= 9u l=.3u m=1 $$
+M5  n1   n1 vdd vdd p_18 w= 9u l=.3u m=1 $$
+M6  n2   n2 vdd vdd p_18 w= 9u l=.3u m=1 $$
+M7  n9   n1 vdd vdd p_18 w= 9u l=.3u m=1
+M8  vout n2 vdd vdd p_18 w= 9u l=.3u m=1
+M9  n9   n9 vss vss n_18 w=.3u l= 9u m=1
+M10 vout n9 vss vss n_18 w=.3u l= 9u m=1
+MB  nb   vb vss vss n_18 w= 9u l= 9u m=1
+.ENDS
+
+***************************************** 
+*** Single-slope AD
+***************************************** 
+.SUBCKT ssAD Vdd Vss Clks Clksb Clk_CNT CNT_EN CNT_ENb RST_N input ramp_in Vb
+X_bootstrap_sw Clks Clksb SH_out Vdd Vss input bootstrapped_switch
+
+Csample SH_out vss 2p
+
+*********
+* need a comparator here!!
+* with postive node connect to "SH_out", 
+*      negative node connect to 'ramp_in'
+* output connect to 'cmp_out'
+*********
+
+X_cmp Vdd Vss Vb SH_out ramp_in cmp_out0 cmp
+
+X_inv1 cmp_out0 cmp_out Vdd Vss INV
+
+X_NAND3_CNT cmp_out Clk_CNT CNT_EN Vdd Vss CNT_trig NAND3
+
+X_counter6b B0 B1 B2 B3 B4 B5 CNT_trig RST_N Vdd Vss counter6b
+
+X_latch_b0 B0 D0 RST_N Vdd Vss latch latch_b latch
+X_latch_b1 B1 D1 RST_N Vdd Vss latch latch_b latch
+X_latch_b2 B2 D2 RST_N Vdd Vss latch latch_b latch
+X_latch_b3 B3 D3 RST_N Vdd Vss latch latch_b latch
+X_latch_b4 B4 D4 RST_N Vdd Vss latch latch_b latch
+X_latch_b5 B5 D5 RST_N Vdd Vss latch latch_b latch
+
+.ENDS

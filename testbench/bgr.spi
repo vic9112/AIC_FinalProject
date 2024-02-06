@@ -1,0 +1,57 @@
+************************************************
+*** BGR
+************************************************
+
+.subckt BGR VDD VSS Vref
+XsubBGR Vdd   gnd Vref  vin vip vo subBGR
+XStart  Vdd   gnd subVb            StartUp
+XVoDiv  subVb gnd vbias            VoltageDivider
+XOpAmp  Vdd   gnd vbias vin vip vo TwoStageOpamp
+.ends
+
+.subckt subBGR Vdd Vss Vref x y z
+*** Resistor
+RB1 y    e2 100k
+RB2 vref e3 1232k
+*** MOS
+MB1 x    z vdd vdd p_18 w=27u l=9u m=1
+MB2 y    z vdd vdd p_18 w=27u l=9u m=1
+MB3 vref z vdd vdd p_18 w=27u l=9u m=1
+*** BJT
+QB1 vss vss x  vss PNP_V50X50 m=1
+QB2 vss vss e2 vss PNP_V50X50 m=8
+QB3 vss vss e3 vss PNP_V50X50 m=1
+*** Ideal Op-amp for testing
+$E1 z vss y x 4500
+.ends
+
+.subckt StartUp Vdd Vss vb
+*** Start-Up Circuit
+MS1 n1 vss vdd vdd p_18 w=.9u l=12u m=1 $ P
+MS2 n2 vss n1  vdd p_18 w=.9u l=12u m=1 $ P
+MS3 n2 vb  vss vss n_18 w=.3u l=12u m=1
+MS4 n7 n2  vss vss n_18 w=.3u l=12u m=1
+*** Resistor
+RSs n8 vss 110k
+*** Constant Gm Biasing
+MS5 vb n7  vdd vdd p_18 w=3u l=1u m=1 $ P
+MS6 vb vb  vss vss n_18 w=1u l=1u m=1
+MS7 n7 n7  vdd vdd p_18 w=3u l=1u m=1 $ P
+MS8 n7 vb  n8  vss n_18 w=4u l=1u m=1
+.ends
+
+.subckt TwoStageOpamp Vdd Vss Vb Vip Vin vo
+MO1 n1  vip nb  vss n_18 w=1u l=1u m=1
+MO2 n2  vin nb  vss n_18 w=1u l=1u m=1
+MO3 n1  n1  vdd vdd p_18 w=3u l=1u m=1
+MO4 n2  n1  vdd vdd p_18 w=3u l=1u m=1
+MO5 vo  n2  vdd vdd p_18 w=3u l=1u m=1
+MO6 vo  vb  vss vss n_18 w=1u l=1u m=1
+MOB nb  vb  vss vss n_18 w=2u l=1u m=1
+.ends
+
+.subckt VoltageDivider Vin Vss Vout
+RD1 vin vout 10x
+RD2 vout vss 10x
+.ends
+
