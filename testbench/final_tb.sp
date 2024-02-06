@@ -44,7 +44,7 @@ Vss vss gnd dc=VSS
 Vb Vb GND Vb
 
 Vramp_in ramp_in vss dc=0 pulse(ramp_min ramp_max 'Ts/2 + sampling_duty_cycle * Ts + 5n' 'Ts - sampling_duty_cycle * Ts - 5n - 0.01 * Ts' 0.1n 5n Ts)
-Vinput input gnd sin(VCM 474m 'Fs*NFIN/NSAMPLE')
+Vinput input gnd sin(VCM amplitude 'Fs*NFIN/NSAMPLE')
 
 ************* sampling clk *****************
 VClks Clks gnd pulse(0 VDD 'Ts/2' 0.1n 0.1n 'sampling_duty_cycle * Ts' Ts)
@@ -52,8 +52,8 @@ VClksb Clksb gnd pulse(VDD 0 'Ts/2' 0.1n 0.1n 'sampling_duty_cycle * Ts' Ts)
 
 ************* control signal for counter *****************
 VCNT_RST_N CNT_RST_N gnd pulse(VDD 0 'Ts/2 + sampling_duty_cycle * Ts - 0.01 * Ts' 0.1n 0.1n '0.01 * Ts' Ts)
-VCNT_EN CNT_EN gnd pulse(0 VDD 'Ts/2 + sampling_duty_cycle * Ts + 5n' 0.1n 0.1n '0.79 * Ts' Ts)
-VCNT_ENb CNT_ENb gnd pulse(VDD 0 'Ts/2 + sampling_duty_cycle * Ts + 5n' 0.1n 0.1n '0.79 * Ts' Ts)
+VCNT_EN CNT_EN gnd pulse(0 VDD 'Ts/2 + sampling_duty_cycle * Ts + 5n' 0.1n 0.1n '0.78 * Ts' Ts)
+VCNT_ENb CNT_ENb gnd pulse(VDD 0 'Ts/2 + sampling_duty_cycle * Ts + 5n' 0.1n 0.1n '0.78 * Ts' Ts)
 VClk_CNT Clk_CNT gnd pulse(0 VDD 'Ts/2 + 5n + cnt_period/2 + 20n' 0.1n 0.1n 'cnt_period/2' cnt_period)
 
 ************* control signal for latch after counter *****************
